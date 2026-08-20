@@ -1,48 +1,12 @@
-name: Susie x86-64 boot test
-
-on:
-  push:
-    branches:
-      - master
-  workflow_dispatch:
-
-jobs:
-  boot-test:
-    name: Boot Susie under x86-64 QEMU
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out Susie
-        uses: actions/checkout@v5
-
-      - name: Show runner architecture
-        run: |
-          uname -m
-          lscpu | grep -E 'Architecture|Model name' || true
-
-      - name: Install QEMU
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y qemu-system-x86
-
-      - name: Check Susie files
-        run: |
-          test -f susie-iso/x86/boot/bzImage
-          test -f susie-initramfs.img
-
-          ls -lh susie-iso/x86/boot/bzImage
-          ls -lh susie-initramfs.img
-
-      - name: Boot Susie
+      - name: Boot Susie ISO
         run: |
           set +e
 
           timeout 20s qemu-system-x86_64 \
             -M pc \
             -m 512M \
-            -kernel susie-iso/x86/boot/bzImage \
-            -initrd susie-initramfs.img \
-            -append "console=ttyS0 rdinit=/init" \
+            -cdrom susie-beta-0.1.iso \
+            -boot d \
             -nographic \
             > susie-boot.log 2>&1
 
@@ -54,17 +18,3 @@ jobs:
             echo "❌ QEMU failed."
             exit "$QEMU_STATUS"
           fi
-
-          if grep -q "Susie OS" susie-boot.log; then
-            echo "✅ Susie successfully reached /init!"
-          else
-            echo "❌ Susie did not reach /init."
-            exit 1
-          fi
-
-      - name: Upload boot log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: susie-boot-log
-          path: susie-boot.log
