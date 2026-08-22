@@ -1,8 +1,15 @@
 #!/bin/sh
 
-mount -t proc proc /proc
-mount -t sysfs sysfs /sys
-mount -t devtmpfs devtmpfs /dev
+echo
+echo "Starting Susie OS..."
+echo
+
+mount -t proc proc /proc || echo "Warning: failed to mount /proc"
+mount -t sysfs sysfs /sys || echo "Warning: failed to mount /sys"
+mount -t devtmpfs devtmpfs /dev || echo "Warning: failed to mount /dev"
+
+mkdir -p /run
+mount -t tmpfs tmpfs /run || echo "Warning: failed to mount /run"
 
 echo
 echo "Susie OS"
